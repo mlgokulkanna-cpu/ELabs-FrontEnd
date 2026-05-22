@@ -6,6 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+*.xlsx
+*.jpg
+*.png
+*.gif
+*.webp
+*.zip
 
 node_modules
 dist
