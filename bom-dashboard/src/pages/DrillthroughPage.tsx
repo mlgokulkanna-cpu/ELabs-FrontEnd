@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
-import { getMasterData } from "../api/dashboardApi";
+import { useState, useEffect } from "react";
+import { getMasterDataById, getAgentData } from "../api/dashboardApi";
 
 import {
 useNavigate,
@@ -9,32 +9,53 @@ useParams
 import {
 ArrowLeft,
 BadgeCheck,
+Clock,
 ShieldCheck,
 Boxes,
 Database,
-TriangleAlert
+CheckCircle2
 } from "lucide-react";
 
 import DashboardLayout from "../components/layout/DashboardLayout";
 
 const DrillthroughPage=()=>{
 
-const [fgData, setData] = useState<any[]>([]);
+const navigate=useNavigate();
+const {id}=useParams();
 
-useEffect(() => {
+const [selectedData, setSelectedData]=
+useState<any>(null);
 
-const fetchData = async () => {
+const [agentData, setAgentData]=
+useState<any>(null);
 
-try {
+const [loading, setLoading]=
+useState(true);
 
-const result =
-await getMasterData();
+useEffect(()=>{
 
-setData(result);
+const fetchData=async()=>{
 
-} catch (err) {
+try{
+
+setLoading(true);
+
+const [masterResult, agentResult]=
+await Promise.all([
+getMasterDataById(id as string),
+getAgentData(id as string),
+]);
+
+setSelectedData(masterResult);
+setAgentData(agentResult);
+
+}catch(err){
 
 console.error(err);
+
+}finally{
+
+setLoading(false);
 
 }
 
@@ -42,25 +63,38 @@ console.error(err);
 
 fetchData();
 
-}, []);
+},[id]);
 
-const navigate=useNavigate();
+if(loading){
 
-const {id}=useParams();
+return(
 
-const selectedData=useMemo(()=>{
+<DashboardLayout>
 
-return fgData.find(
-(item)=>
-String(item.unique_id)===
-String(id)
+<div
+className="
+h-full
+flex
+items-center
+justify-center
+text-[#243B6B]
+text-xl
+font-semibold
+"
+>
+Loading...
+</div>
+
+</DashboardLayout>
+
 );
 
-},[fgData,id]);
+}
 
 if(!selectedData){
 
 return(
+
 <DashboardLayout>
 
 <div
@@ -104,9 +138,16 @@ Back
 </div>
 
 </DashboardLayout>
+
 );
 
 }
+
+const extractionStatus=
+agentData?.extraction_status ?? "Review";
+
+const isMatched=
+extractionStatus.toLowerCase()==="matched";
 
 const validationRows=[
 {
@@ -136,41 +177,45 @@ const stats=[
 title:"Unique ID",
 value:selectedData.unique_id,
 icon:<Database className="h-6 w-6" />,
-card:
-"from-[#FFB7A0] to-[#FFD5C7]",
-glow:
-"shadow-[0_10px_30px_rgba(255,183,160,0.18)]",
+card:"from-[#FFB7A0] to-[#FFD5C7]",
+glow:"shadow-[0_10px_30px_rgba(255,183,160,0.18)]",
 text:"text-[#7B4A3A]",
 },
 {
 title:"Formula",
 value:selectedData.formula_number,
 icon:<Boxes className="h-6 w-6" />,
-card:
-"from-[#CDECC9] to-[#E9F9E6]",
-glow:
-"shadow-[0_10px_30px_rgba(205,236,201,0.18)]",
+card:"from-[#CDECC9] to-[#E9F9E6]",
+glow:"shadow-[0_10px_30px_rgba(205,236,201,0.18)]",
 text:"text-[#49614B]",
 },
 {
 title:"Validation",
 value:"98%",
 icon:<ShieldCheck className="h-6 w-6" />,
-card:
-"from-[#B9ECD8] to-[#DDF8EE]",
-glow:
-"shadow-[0_10px_30px_rgba(185,236,216,0.18)]",
+card:"from-[#B9ECD8] to-[#DDF8EE]",
+glow:"shadow-[0_10px_30px_rgba(185,236,216,0.18)]",
 text:"text-[#2D5B4F]",
 },
 {
 title:"Review Status",
-value:"Matched",
-icon:<TriangleAlert className="h-6 w-6" />,
+value:extractionStatus,
+icon:
+isMatched
+?<CheckCircle2 className="h-6 w-6" />
+:<Clock className="h-6 w-6" />,
 card:
-"from-[#97E0ED] to-[#D7F7FB]",
+isMatched
+?"from-[#B9ECD8] to-[#DDF8EE]"
+:"from-[#FFF3CC] to-[#FFFAE6]",
 glow:
-"shadow-[0_10px_30px_rgba(151,224,237,0.18)]",
-text:"text-[#2B5862]",
+isMatched
+?"shadow-[0_10px_30px_rgba(185,236,216,0.18)]"
+:"shadow-[0_10px_30px_rgba(255,200,0,0.15)]",
+text:
+isMatched
+?"text-[#2D5B4F]"
+:"text-[#856404]",
 },
 ];
 
@@ -222,22 +267,28 @@ Back to Overview
 </button>
 
 <div
-className="
+className={`
 flex
 items-center
 gap-2
-bg-[#DDF8EE]
-text-[#2D5B4F]
 px-4
 py-3
 font-semibold
 shadow-lg
-"
+${
+isMatched
+?"bg-[#DDF8EE] text-[#2D5B4F]"
+:"bg-[#FFF3CC] text-[#856404]"
+}
+`}
 >
 
-<BadgeCheck size={18} />
+{isMatched
+?<BadgeCheck size={18} />
+:<Clock size={18} />
+}
 
-Matched
+{extractionStatus}
 
 </div>
 
@@ -448,11 +499,7 @@ Validation Summary
 
 <thead>
 
-<tr
-className="
-bg-white/20
-"
->
+<tr className="bg-white/20">
 
 <th
 className="

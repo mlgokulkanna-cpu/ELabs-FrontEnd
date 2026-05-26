@@ -1,14 +1,14 @@
 import {
 useMemo,
 useState,
-useEffect
+useEffect,
+useRef
 } from "react";
 
 import { useNavigate } from "react-router-dom";
 
 import {
 ChevronDown,
-X
 } from "lucide-react";
 
 import {
@@ -20,8 +20,6 @@ TableHeader,
 TableRow,
 } from "@/components/ui/table";
 
-import { Button } from "@/components/ui/button";
-
 interface Column{
 header:string;
 accessor:string;
@@ -32,12 +30,25 @@ columns:Column[];
 data:Record<string,any>[];
 }
 
+const COL_FLEX: Record<string,number>={
+unique_id:1,
+company_name:1.5,
+fg_description:2.5,
+client_sku_number:1.5,
+elabs_fg_match_code:1.5,
+fill_weight:1,
+formula_number:1.5,
+valid_from:1.2,
+};
+
 const Table=({
 columns,
 data,
 }:TableProps)=>{
 
 const navigate=useNavigate();
+
+const containerRef=useRef<HTMLDivElement>(null);
 
 const [colFilters,setColFilters]=
 useState<Record<string,string>>(()=>{
@@ -64,6 +75,35 @@ JSON.stringify(colFilters)
 
 const [openFilter,setOpenFilter]=
 useState<string|null>(null);
+
+useEffect(()=>{
+
+const handleClickOutside=(e:MouseEvent)=>{
+
+if(
+containerRef.current &&
+!containerRef.current.contains(
+e.target as Node
+)
+){
+setOpenFilter(null);
+}
+
+};
+
+document.addEventListener(
+"mousedown",
+handleClickOutside
+);
+
+return()=>{
+document.removeEventListener(
+"mousedown",
+handleClickOutside
+);
+};
+
+},[]);
 
 const filteredData=useMemo(()=>{
 
@@ -162,70 +202,40 @@ setOpenFilter(null);
 
 };
 
+const totalFlex=
+columns.reduce((acc,col)=>
+acc+(COL_FLEX[col.accessor]??1),0
+);
+
+const getColWidth=(accessor:string)=>{
+const flex=COL_FLEX[accessor]??1;
+return`${((flex/totalFlex)*100).toFixed(2)}%`;
+};
+
+const tableStyle={
+width:"100%",
+tableLayout:"fixed" as const,
+};
+
 return(
 
 <div
-className="
-relative
-bg-transparent
-overflow-hidden
-"
->
-<div
-className="
-absolute
-top-0
-right-0
-z-20
-"
+ref={containerRef}
+className="relative bg-transparent w-full"
 >
 
-<Button
-variant="outline"
-onClick={clearAllFilters}
-className="
-h-[38px]
-border
-border-[rgba(41,64,111,0.16)]
-bg-[rgba(255,255,255,0.22)]
-backdrop-blur-md
-px-4
-text-[12px]
-font-semibold
-text-[#29406F]
-hover:bg-[rgba(255,255,255,0.34)]
-hover:text-[#243B6B]
-shadow-none
-"
->
+<UITable style={tableStyle}>
 
-<X className="mr-2 h-3 w-3" />
+<colgroup>
+{columns.map((col)=>(
+<col
+key={col.accessor}
+style={{ width:getColWidth(col.accessor) }}
+/>
+))}
+</colgroup>
 
-Clear All Slicers
-
-</Button>
-
-</div>
-
-<div
-className="
-overflow-auto
-max-h-[58vh]
-lg:max-h-[64vh]
-"
->
-
-<UITable>
-
-<TableHeader
-className="
-sticky
-top-0
-z-30
-bg-[#EAF7FC]
-backdrop-blur-md
-"
->
+<TableHeader>
 
 <TableRow
 className="
@@ -248,8 +258,6 @@ return(
 key={col.accessor}
 className="
 relative
-min-w-[120px]
-lg:min-w-[145px]
 px-3
 py-3
 text-[12px]
@@ -259,6 +267,8 @@ tracking-normal
 text-[#29406F]
 border-none
 bg-[#EAF7FC]
+shadow-sm
+overflow-visible
 "
 >
 
@@ -271,26 +281,22 @@ gap-2
 "
 >
 
-<span>
+<span className="truncate">
 {col.header}
 </span>
 
 <button
 onClick={(e)=>{
-
 e.stopPropagation();
-
 setOpenFilter(
-isOpen
-? null
-: col.accessor
+isOpen ? null : col.accessor
 );
-
 }}
 className={`
 flex
 h-7
 w-7
+shrink-0
 items-center
 justify-center
 transition-all
@@ -314,16 +320,18 @@ isFiltered
 
 <div
 className="
-absolute
-left-0
-top-12
-z-[999]
+fixed
+z-[9999]
 w-[200px]
 border
 border-[#DDECF0]
 bg-white
 shadow-2xl
+mt-1
 "
+style={{
+top:"auto",
+}}
 >
 
 <button
@@ -408,6 +416,27 @@ col.accessor
 
 </TableHeader>
 
+</UITable>
+
+<div
+className="
+overflow-y-auto
+h-[52vh]
+lg:h-[58vh]
+"
+>
+
+<UITable style={tableStyle}>
+
+<colgroup>
+{columns.map((col)=>(
+<col
+key={col.accessor}
+style={{ width:getColWidth(col.accessor) }}
+/>
+))}
+</colgroup>
+
 <TableBody>
 
 {filteredData.map((
@@ -425,9 +454,9 @@ navigate(
 className="
 cursor-pointer
 border-b
-border-[rgba(255,255,255,0.16)]
+border-[rgba(36,59,107,0.08)]
 transition-all
-hover:bg-[rgba(255,255,255,0.12)]
+hover:bg-[rgba(234,247,252,0.5)]
 "
 >
 
@@ -436,13 +465,13 @@ hover:bg-[rgba(255,255,255,0.12)]
 <TableCell
 key={col.accessor}
 className="
-px-2
-lg:px-3
+px-3
 py-3
 text-[12px]
 lg:text-[14px]
 font-medium
 text-[#42506A]
+truncate
 "
 >
 

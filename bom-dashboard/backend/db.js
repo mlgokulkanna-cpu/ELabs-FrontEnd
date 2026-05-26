@@ -6,32 +6,57 @@ dotenv.config();
 
 const credential = new DefaultAzureCredential();
 
-const connectDB = async () => {
+let pool;
+
+const getConnection = async () => {
+
   try {
-    const tokenResponse = await credential.getToken(
-      "https://database.windows.net/.default"
-    );
+
+    if (pool) {
+      return pool;
+    }
+
+    const tokenResponse =
+      await credential.getToken(
+        "https://database.windows.net/.default"
+      );
 
     const config = {
       server: process.env.DB_SERVER,
       database: process.env.DB_DATABASE,
       options: {
-        encrypt: true
+        encrypt: true,
+        trustServerCertificate: false
       },
       authentication: {
         type: "azure-active-directory-access-token",
         options: {
           token: tokenResponse.token
         }
+      },
+      pool: {
+        max: 10,
+        min: 0,
+        idleTimeoutMillis: 30000
       }
     };
 
-    await sql.connect(config);
+    pool =
+      await sql.connect(config);
 
     console.log("Fabric Connected");
+
+    return pool;
+
   } catch (err) {
+
     console.log(err);
+
   }
+
 };
 
-export { sql, connectDB };
+export {
+  sql,
+  getConnection
+};

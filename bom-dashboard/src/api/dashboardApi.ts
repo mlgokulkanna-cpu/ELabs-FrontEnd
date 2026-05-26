@@ -5,11 +5,32 @@ const API = axios.create({
 });
 
 export const getMasterData = async () => {
-  const response = await API.get("/master-data");
+
+  const response =
+    await API.get("/master-data");
+
   return response.data;
+
 };
 
-export const getAgentData = async () => {
-  const response = await API.get("/agent-data");
+export const getMasterDataById = async (
+  id: string
+) => {
+
+  const response =
+    await API.get(`/master-data/${id}`);
+
   return response.data;
+
+};
+
+export const getAgentData = async (
+  id: string
+) => {
+
+  const response =
+    await API.get(`/agent-data/${id}`);
+
+  return response.data;
+
 };

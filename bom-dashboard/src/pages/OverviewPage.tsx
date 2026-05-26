@@ -18,11 +18,16 @@ const OverviewPage = () => {
 const [excelData, setExcelData] =
 useState<any[]>([]);
 
+const [loading, setLoading] =
+useState(false);
+
 useEffect(() => {
 
 const loadData = async () => {
 
 try {
+
+setLoading(true);
 
 const data =
 await getMasterData();
@@ -32,6 +37,10 @@ setExcelData(data);
 } catch (err) {
 
 console.error(err);
+
+} finally {
+
+setLoading(false);
 
 }
 
@@ -60,7 +69,10 @@ client_sku_number: row.client_sku_number || "",
 elabs_fg_match_code: row.elabs_fg_match_code || "",
 fill_weight: row.fill_weight || "",
 formula_number: row.formula_number || "",
-valid_from: row.valid_from || "",
+valid_from: row.valid_from
+? new Date(row.valid_from)
+.toLocaleDateString("en-CA")
+: "",
 }));
 
 const totalClients =
@@ -106,6 +118,32 @@ glow: "shadow-[0_10px_30px_rgba(151,224,237,0.18)]",
 text: "text-[#2B5862]",
 },
 ];
+
+if (loading) {
+
+return (
+
+<DashboardLayout>
+
+<div
+className="
+h-full
+flex
+items-center
+justify-center
+text-[#243B6B]
+text-xl
+font-semibold
+"
+>
+Loading...
+</div>
+
+</DashboardLayout>
+
+);
+
+}
 
 return (
 
