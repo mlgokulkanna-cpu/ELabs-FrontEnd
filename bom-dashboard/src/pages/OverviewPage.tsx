@@ -11,7 +11,7 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 
 import Table from "../components/tables/Table";
 
-import { readExcelSheet } from "../data/excelReader";
+import { getMasterData } from "../api/dashboardApi";
 
 const OverviewPage = () => {
 
@@ -20,19 +20,24 @@ useState<any[]>([]);
 
 useEffect(() => {
 
-const loadExcelData = async () => {
+const loadData = async () => {
+
+try {
 
 const data =
-await readExcelSheet(
-"/data/dummy_dataset.xlsx",
-"master_fg_data"
-);
+await getMasterData();
 
 setExcelData(data);
 
+} catch (err) {
+
+console.error(err);
+
+}
+
 };
 
-loadExcelData();
+loadData();
 
 }, []);
 
@@ -234,6 +239,7 @@ ${item.text}
 ))}
 
 </div>
+
 <div
 className="
 mt-5

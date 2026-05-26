@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import OverviewPage from "./pages/OverviewPage";
 import DrillthroughPage from "./pages/DrillthroughPage";
-import AttachmentsPage from "./pages/AttachmentsPage";
+import OorPage from "./pages/OorPage";
 
 function App(){
 
@@ -26,8 +26,8 @@ element={<DrillthroughPage />}
 />
 
 <Route
-path="/attachments"
-element={<AttachmentsPage />}
+path="/oor"
+element={<OorPage />}
 />
 
 </Routes>

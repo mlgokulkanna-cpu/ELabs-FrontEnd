@@ -40,8 +40,8 @@ path:"/overview",
 icon:<LayoutGrid size={20} />,
 },
 {
-label:"Attachments",
-path:"/attachments",
+label:"OOR",
+path:"/oor",
 icon:<Paperclip size={20} />,
 },
 ];

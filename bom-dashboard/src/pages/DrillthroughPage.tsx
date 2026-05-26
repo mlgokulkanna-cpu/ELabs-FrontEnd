@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { getMasterData } from "../api/dashboardApi";
 
 import {
 useNavigate,
@@ -10,16 +11,38 @@ ArrowLeft,
 BadgeCheck,
 ShieldCheck,
 Boxes,
-ScanSearch,
 Database,
 TriangleAlert
 } from "lucide-react";
 
 import DashboardLayout from "../components/layout/DashboardLayout";
 
-import fgData from "../../public/data/master_fg_data.json";
-
 const DrillthroughPage=()=>{
+
+const [fgData, setData] = useState<any[]>([]);
+
+useEffect(() => {
+
+const fetchData = async () => {
+
+try {
+
+const result =
+await getMasterData();
+
+setData(result);
+
+} catch (err) {
+
+console.error(err);
+
+}
+
+};
+
+fetchData();
+
+}, []);
 
 const navigate=useNavigate();
 
@@ -33,7 +56,7 @@ String(item.unique_id)===
 String(id)
 );
 
-},[id]);
+},[fgData,id]);
 
 if(!selectedData){
 
