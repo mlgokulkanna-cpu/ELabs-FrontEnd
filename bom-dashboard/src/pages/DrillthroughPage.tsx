@@ -1,415 +1,651 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+
+import {
+useNavigate,
+useParams
+} from "react-router-dom";
+
+import {
+ArrowLeft,
+BadgeCheck,
+ShieldCheck,
+Boxes,
+ScanSearch,
+Database,
+TriangleAlert
+} from "lucide-react";
+
 import DashboardLayout from "../components/layout/DashboardLayout";
-import "./DrillthroughPage.css";
-import masterData from "../../public/data/master_fg_data.json";
-import agentData from "../../public/data/agent_extracted_data.json";
 
-const DrillthroughPage = () => {
+import fgData from "../../public/data/master_fg_data.json";
 
-const [uniqueIdFilter,setUniqueIdFilter] = useState("");
-const [clientFilter,setClientFilter] = useState("");
-const [fgFilter,setFgFilter] = useState("");
-const [formulaFilter,setFormulaFilter] = useState("");
-const [validFromFilter,setValidFromFilter] = useState("");
+const DrillthroughPage=()=>{
 
-const filteredMasterData = useMemo(() => {
-return masterData.filter((item:any) => {
+const navigate=useNavigate();
 
-const uniqueIdMatch =
-!uniqueIdFilter ||
-String(item.unique_id).toLowerCase().includes(uniqueIdFilter.toLowerCase());
+const {id}=useParams();
 
-const clientMatch =
-!clientFilter ||
-String(item.company_name).toLowerCase().includes(clientFilter.toLowerCase());
+const selectedData=useMemo(()=>{
 
-const fgMatch =
-!fgFilter ||
-String(item.fg_description).toLowerCase().includes(fgFilter.toLowerCase());
-
-const formulaMatch =
-!formulaFilter ||
-String(item.formula_number).toLowerCase().includes(formulaFilter.toLowerCase());
-
-const validFromMatch =
-!validFromFilter ||
-String(item.valid_from).toLowerCase().includes(validFromFilter.toLowerCase());
-
-return (
-uniqueIdMatch &&
-clientMatch &&
-fgMatch &&
-formulaMatch &&
-validFromMatch
+return fgData.find(
+(item)=>
+String(item.unique_id)===
+String(id)
 );
 
-});
-},[
-uniqueIdFilter,
-clientFilter,
-fgFilter,
-formulaFilter,
-validFromFilter
-]);
+},[id]);
 
-const selectedMaster = filteredMasterData[0];
+if(!selectedData){
 
-const relatedAgent = useMemo(() => {
-return agentData.filter(
-(item:any) =>
-String(item.source_unique_id) ===
-String(selectedMaster?.unique_id)
-);
-},[selectedMaster]);
-
-const selectedAgent = relatedAgent[0];
-
-const getStatusClass = (status:string) => {
-if(status === "matched") return "status-matched";
-if(status === "review") return "status-review";
-return "status-manual";
-};
-
-return (
+return(
 <DashboardLayout>
 
-<div className="drillthrough-page">
-
-<div className="drillthrough-header">
-
-<h1>FG Drill-through</h1>
-
-<p>
-Inspect extracted FG records against source system master data
-</p>
-
-</div>
-
-<div className="drillthrough-filter-bar">
-
-<div className="filter-select-wrapper">
-<select
-value={uniqueIdFilter}
-onChange={(e)=>setUniqueIdFilter(e.target.value)}
+<div
+className="
+h-full
+flex
+items-center
+justify-center
+"
 >
-<option value="">Clear All Filters</option>
 
-{[...new Set(masterData.map((item:any)=>item.unique_id))]
-.map((id:any)=>(
-<option key={id} value={id}>
-{id}
-</option>
-))}
-</select>
+<div className="text-center">
 
-<span className="filter-label">
-Unique ID
-</span>
-
-<span className="filter-arrow">
-▼
-</span>
-</div>
-
-<div className="filter-select-wrapper">
-<select
-value={clientFilter}
-onChange={(e)=>setClientFilter(e.target.value)}
+<h2
+className="
+text-3xl
+font-bold
+text-[#243B6B]
+"
 >
-<option value="">Clear All Filters</option>
-
-{[...new Set(masterData.map((item:any)=>item.company_name))]
-.map((client:any)=>(
-<option key={client} value={client}>
-{client}
-</option>
-))}
-</select>
-
-<span className="filter-label">
-Client Name
-</span>
-
-<span className="filter-arrow">
-▼
-</span>
-</div>
-
-<div className="filter-select-wrapper">
-<select
-value={fgFilter}
-onChange={(e)=>setFgFilter(e.target.value)}
->
-<option value="">Clear All Filters</option>
-
-{[...new Set(masterData.map((item:any)=>item.fg_description))]
-.map((fg:any)=>(
-<option key={fg} value={fg}>
-{fg}
-</option>
-))}
-</select>
-
-<span className="filter-label">
-FG Description
-</span>
-
-<span className="filter-arrow">
-▼
-</span>
-</div>
-
-<div className="filter-select-wrapper">
-<select
-value={formulaFilter}
-onChange={(e)=>setFormulaFilter(e.target.value)}
->
-<option value="">Clear All Filters</option>
-
-{[...new Set(masterData.map((item:any)=>item.formula_number))]
-.map((formula:any)=>(
-<option key={formula} value={formula}>
-{formula}
-</option>
-))}
-</select>
-
-<span className="filter-label">
-Formula Number
-</span>
-
-<span className="filter-arrow">
-▼
-</span>
-</div>
-
-<div className="filter-select-wrapper">
-<select
-value={validFromFilter}
-onChange={(e)=>setValidFromFilter(e.target.value)}
->
-<option value="">Clear All Filters</option>
-
-{[...new Set(masterData.map((item:any)=>item.valid_from))]
-.map((date:any)=>(
-<option key={date} value={date}>
-{date}
-</option>
-))}
-</select>
-
-<span className="filter-label">
-Valid From
-</span>
-
-<span className="filter-arrow">
-▼
-</span>
-</div>
+Record not found
+</h2>
 
 <button
-className="clear-slicer-btn"
-onClick={()=>{
-setUniqueIdFilter("");
-setClientFilter("");
-setFgFilter("");
-setFormulaFilter("");
-setValidFromFilter("");
-}}
+onClick={()=>
+navigate("/overview")
+}
+className="
+mt-4
+bg-[#243B6B]
+text-white
+px-5
+py-3
+"
 >
-Clear All Slicers
+Back
 </button>
 
 </div>
 
-<div className="drillthrough-grid">
+</div>
 
-<div className="panel-card">
+</DashboardLayout>
+);
 
-<div className="panel-title">
+}
+
+const validationRows=[
+{
+field:"FG Description",
+agent:selectedData.fg_description,
+master:selectedData.fg_description,
+},
+{
+field:"SKU",
+agent:selectedData.client_sku_number,
+master:selectedData.client_sku_number,
+},
+{
+field:"Formula",
+agent:selectedData.formula_number,
+master:selectedData.formula_number,
+},
+{
+field:"Match Code",
+agent:selectedData.elabs_fg_match_code,
+master:selectedData.elabs_fg_match_code,
+},
+];
+
+const stats=[
+{
+title:"Unique ID",
+value:selectedData.unique_id,
+icon:<Database className="h-6 w-6" />,
+card:
+"from-[#FFB7A0] to-[#FFD5C7]",
+glow:
+"shadow-[0_10px_30px_rgba(255,183,160,0.18)]",
+text:"text-[#7B4A3A]",
+},
+{
+title:"Formula",
+value:selectedData.formula_number,
+icon:<Boxes className="h-6 w-6" />,
+card:
+"from-[#CDECC9] to-[#E9F9E6]",
+glow:
+"shadow-[0_10px_30px_rgba(205,236,201,0.18)]",
+text:"text-[#49614B]",
+},
+{
+title:"Validation",
+value:"98%",
+icon:<ShieldCheck className="h-6 w-6" />,
+card:
+"from-[#B9ECD8] to-[#DDF8EE]",
+glow:
+"shadow-[0_10px_30px_rgba(185,236,216,0.18)]",
+text:"text-[#2D5B4F]",
+},
+{
+title:"Review Status",
+value:"Matched",
+icon:<TriangleAlert className="h-6 w-6" />,
+card:
+"from-[#97E0ED] to-[#D7F7FB]",
+glow:
+"shadow-[0_10px_30px_rgba(151,224,237,0.18)]",
+text:"text-[#2B5862]",
+},
+];
+
+return(
+
+<DashboardLayout>
+
+<div
+className="
+w-full
+max-w-[1600px]
+mx-auto
+"
+>
+
+<div
+className="
+flex
+items-center
+justify-between
+gap-4
+flex-wrap
+"
+>
+
+<button
+onClick={()=>
+navigate("/overview")
+}
+className="
+flex
+items-center
+gap-2
+px-4
+py-3
+bg-white/50
+backdrop-blur-md
+text-[#243B6B]
+font-medium
+hover:bg-white/70
+transition-all
+"
+>
+
+<ArrowLeft size={18} />
+
+Back to Overview
+
+</button>
+
+<div
+className="
+flex
+items-center
+gap-2
+bg-[#DDF8EE]
+text-[#2D5B4F]
+px-4
+py-3
+font-semibold
+shadow-lg
+"
+>
+
+<BadgeCheck size={18} />
+
+Matched
+
+</div>
+
+</div>
+
+<div className="mt-7">
+
+<h1
+className="
+text-[30px]
+sm:text-[42px]
+font-bold
+text-[#243B6B]
+leading-tight
+"
+>
+FG Drill-through
+</h1>
+
+<p
+className="
+mt-2
+text-[#5B739D]
+text-sm
+"
+>
+Detailed validation and comparison view for selected FG product.
+</p>
+
+</div>
+
+<div
+className="
+grid
+grid-cols-2
+md:grid-cols-4
+gap-4
+mt-6
+"
+>
+
+{stats.map((item)=>(
+
+<div
+key={item.title}
+className={`
+bg-gradient-to-br
+${item.card}
+${item.glow}
+p-4
+`}
+>
+
+<div className="flex items-center justify-between">
+
+<div>
+
+<p
+className={`
+text-xs
+font-semibold
+${item.text}
+opacity-80
+`}
+>
+{item.title}
+</p>
+
+<h2
+className={`
+mt-2
+text-2xl
+font-bold
+${item.text}
+break-words
+`}
+>
+{item.value}
+</h2>
+
+</div>
+
+<div className={item.text}>
+
+{item.icon}
+
+</div>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+<div
+className="
+grid
+xl:grid-cols-2
+gap-5
+mt-6
+"
+>
+
+<div
+className="
+bg-[rgba(255,255,255,0.18)]
+backdrop-blur-xl
+border
+border-white/20
+p-5
+shadow-xl
+"
+>
+
+<h2
+className="
+text-[26px]
+font-bold
+text-[#243B6B]
+"
+>
 Agent Extracted Data
+</h2>
+
+<div
+className="
+grid
+grid-cols-2
+gap-x-8
+gap-y-5
+mt-6
+"
+>
+
+{[
+["Extraction ID",`EXT-${selectedData.unique_id}`],
+["Sender","sarah@clientbrw.com"],
+["Client",selectedData.company_name],
+["FG Description",selectedData.fg_description],
+["SKU",selectedData.client_sku_number],
+["Match Code",selectedData.elabs_fg_match_code],
+["Formula Number",selectedData.formula_number],
+["Fill Weight",selectedData.fill_weight],
+["Valid From",selectedData.valid_from],
+["Confidence","0.98"],
+].map(([label,value])=>(
+
+<div key={label}>
+
+<p
+className="
+text-[11px]
+uppercase
+tracking-[1px]
+font-semibold
+text-[#7B8FB3]
+"
+>
+{label}
+</p>
+
+<p
+className="
+mt-1
+text-[16px]
+font-medium
+text-[#2F4467]
+break-words
+"
+>
+{value}
+</p>
+
 </div>
 
-<div className="details-wrapper">
-
-<div className="details-grid">
-
-<div className="detail-item">
-<label>Extraction ID</label>
-<span>{selectedAgent?.extraction_id}</span>
-</div>
-
-<div className="detail-item">
-<label>Sender</label>
-<span>{selectedAgent?.sender_name}</span>
-</div>
-
-<div className="detail-item">
-<label>Client</label>
-<span>{selectedAgent?.extracted_client_name}</span>
-</div>
-
-<div className="detail-item">
-<label>FG Description</label>
-<span>{selectedAgent?.extracted_fg_description}</span>
-</div>
-
-<div className="detail-item">
-<label>SKU</label>
-<span>{selectedAgent?.extracted_sku}</span>
-</div>
-
-<div className="detail-item">
-<label>Match Code</label>
-<span>{selectedAgent?.extracted_match_code}</span>
-</div>
-
-<div className="detail-item">
-<label>Formula Number</label>
-<span>{selectedAgent?.extracted_formula_number}</span>
-</div>
-
-<div className="detail-item">
-<label>Fill Weight</label>
-<span>{selectedAgent?.extracted_fill_weight}</span>
-</div>
-
-<div className="detail-item">
-<label>Valid From</label>
-<span>{selectedAgent?.extracted_valid_from}</span>
-</div>
-
-<div className="detail-item">
-<label>Confidence</label>
-<span>{selectedAgent?.extraction_confidence}</span>
-</div>
-
-<div className="detail-item">
-<label>Status</label>
-
-<span className={getStatusClass(selectedAgent?.extraction_status)}>
-{selectedAgent?.extraction_status}
-</span>
+))}
 
 </div>
 
 </div>
 
-<div className="notes-box">
+<div
+className="
+bg-[rgba(255,255,255,0.18)]
+backdrop-blur-xl
+border
+border-white/20
+p-5
+shadow-xl
+"
+>
 
-<div className="notes-title">
-Extracted Notes
-</div>
-
-<div className="notes-content">
-{selectedAgent?.extracted_notes}
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div className="panel-card">
-
-<div className="panel-title">
-Master System Data
-</div>
-
-<div className="details-wrapper">
-
-<div className="details-grid">
-
-<div className="detail-item">
-<label>Unique ID</label>
-<span>{selectedMaster?.unique_id}</span>
-</div>
-
-<div className="detail-item">
-<label>Client Name</label>
-<span>{selectedMaster?.company_name}</span>
-</div>
-
-<div className="detail-item">
-<label>FG Description</label>
-<span>{selectedMaster?.fg_description}</span>
-</div>
-
-<div className="detail-item">
-<label>SKU</label>
-<span>{selectedMaster?.client_sku_number}</span>
-</div>
-
-<div className="detail-item">
-<label>FG Match Code</label>
-<span>{selectedMaster?.elabs_fg_match_code}</span>
-</div>
-
-<div className="detail-item">
-<label>Formula Number</label>
-<span>{selectedMaster?.formula_number}</span>
-</div>
-
-<div className="detail-item">
-<label>Fill Weight</label>
-<span>{selectedMaster?.fill_weight}</span>
-</div>
-
-<div className="detail-item">
-<label>Valid From</label>
-<span>{selectedMaster?.valid_from}</span>
-</div>
-
-</div>
-
-</div>
-
-<div className="comparison-section">
-
-<div className="comparison-title">
+<h2
+className="
+text-[26px]
+font-bold
+text-[#243B6B]
+"
+>
 Validation Summary
-</div>
+</h2>
 
-<table className="comparison-table">
+<div className="mt-5 overflow-auto">
+
+<table className="w-full">
 
 <thead>
-<tr>
-<th>Field</th>
-<th>Agent Extracted</th>
-<th>Master Data</th>
+
+<tr
+className="
+bg-white/20
+"
+>
+
+<th
+className="
+px-4
+py-3
+text-left
+text-xs
+font-semibold
+text-[#243B6B]
+"
+>
+Field
+</th>
+
+<th
+className="
+px-4
+py-3
+text-left
+text-xs
+font-semibold
+text-[#243B6B]
+"
+>
+Agent Extracted
+</th>
+
+<th
+className="
+px-4
+py-3
+text-left
+text-xs
+font-semibold
+text-[#243B6B]
+"
+>
+Master Data
+</th>
+
 </tr>
+
 </thead>
 
 <tbody>
 
-<tr>
-<td>FG Description</td>
-<td>{selectedAgent?.extracted_fg_description}</td>
-<td>{selectedMaster?.fg_description}</td>
+{validationRows.map((row,index)=>(
+
+<tr
+key={index}
+className="
+border-b
+border-white/10
+"
+>
+
+<td
+className="
+px-4
+py-4
+text-sm
+font-semibold
+text-[#243B6B]
+"
+>
+{row.field}
+</td>
+
+<td
+className="
+px-4
+py-4
+text-sm
+text-[#445B88]
+"
+>
+{row.agent}
+</td>
+
+<td
+className="
+px-4
+py-4
+text-sm
+text-[#445B88]
+"
+>
+{row.master}
+</td>
+
 </tr>
 
-<tr>
-<td>SKU</td>
-<td>{selectedAgent?.extracted_sku}</td>
-<td>{selectedMaster?.client_sku_number}</td>
-</tr>
-
-<tr>
-<td>Formula</td>
-<td>{selectedAgent?.extracted_formula_number}</td>
-<td>{selectedMaster?.formula_number}</td>
-</tr>
-
-<tr>
-<td>Match Code</td>
-<td>{selectedAgent?.extracted_match_code}</td>
-<td>{selectedMaster?.elabs_fg_match_code}</td>
-</tr>
+))}
 
 </tbody>
 
 </table>
+
+</div>
+
+<div
+className="
+grid
+grid-cols-2
+gap-5
+mt-8
+"
+>
+
+<div>
+
+<p
+className="
+text-[11px]
+uppercase
+tracking-[1px]
+font-semibold
+text-[#7B8FB3]
+"
+>
+Master Client
+</p>
+
+<p
+className="
+mt-1
+text-[16px]
+font-medium
+text-[#2F4467]
+"
+>
+{selectedData.company_name}
+</p>
+
+</div>
+
+<div>
+
+<p
+className="
+text-[11px]
+uppercase
+tracking-[1px]
+font-semibold
+text-[#7B8FB3]
+"
+>
+SKU
+</p>
+
+<p
+className="
+mt-1
+text-[16px]
+font-medium
+text-[#2F4467]
+"
+>
+{selectedData.client_sku_number}
+</p>
+
+</div>
+
+<div>
+
+<p
+className="
+text-[11px]
+uppercase
+tracking-[1px]
+font-semibold
+text-[#7B8FB3]
+"
+>
+Formula
+</p>
+
+<p
+className="
+mt-1
+text-[16px]
+font-medium
+text-[#2F4467]
+"
+>
+{selectedData.formula_number}
+</p>
+
+</div>
+
+<div>
+
+<p
+className="
+text-[11px]
+uppercase
+tracking-[1px]
+font-semibold
+text-[#7B8FB3]
+"
+>
+FG Match Code
+</p>
+
+<p
+className="
+mt-1
+text-[16px]
+font-medium
+text-[#2F4467]
+"
+>
+{selectedData.elabs_fg_match_code}
+</p>
+
+</div>
 
 </div>
 
@@ -420,7 +656,9 @@ Validation Summary
 </div>
 
 </DashboardLayout>
+
 );
+
 };
 
 export default DrillthroughPage;

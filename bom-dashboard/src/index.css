@@ -1,14 +1,81 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+:root{
+
+--background:0 0% 100%;
+--foreground:221 48% 28%;
+
+--card:0 0% 100%;
+--card-foreground:221 48% 28%;
+
+--popover:0 0% 100%;
+--popover-foreground:221 48% 28%;
+
+--primary:221 48% 28%;
+--primary-foreground:0 0% 100%;
+
+--secondary:190 75% 90%;
+--secondary-foreground:221 48% 28%;
+
+--accent:160 45% 84%;
+--accent-foreground:221 48% 28%;
+
+--muted:18 100% 92%;
+--muted-foreground:221 20% 45%;
+
+--border:210 25% 88%;
+
+}
+
+*{
+@layer border-border;
+}
+
+html{
+font-family:"Geist Variable",sans-serif;
+scroll-behavior:smooth;
+}
+
 body{
 margin:0;
-padding:0;
-font-family:'Cormorant Garamond',serif;
-background:linear-gradient(135deg,#ffb8f0 0%,#b2caff 52%, 100%);
+min-height:100vh;
 overflow:hidden;
+background: #ffffff;
+/*background:
+linear-gradient(
+135deg,
+rgba(255,183,160,0.34) 0%,
+rgba(187,233,214,0.32) 50%,
+rgba(151,224,237,0.34) 100%
+);*/
+font-family:"Geist Variable",sans-serif;
+color:hsl(var(--foreground));
+-webkit-font-smoothing:antialiased;
+-moz-osx-font-smoothing:grayscale;
 }
-*{
-box-sizing:border-box;
-}
+
 #root{
 height:100vh;
-background:linear-gradient(135deg,#ffb8f0 0%,#b2caff 52%, 100%);
+overflow:hidden;
+}
+
+*::-webkit-scrollbar{
+width:0;
+height:0;
+display:none;
+}
+
+*{
+-ms-overflow-style:none;
+scrollbar-width:none;
+}
+
 }

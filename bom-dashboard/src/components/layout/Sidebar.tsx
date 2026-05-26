@@ -1,112 +1,230 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import "./Sidebar.css";
+import { useState, useEffect } from "react";
 
-const Sidebar = () => {
-const [collapsed, setCollapsed] = useState(false);
-const navigate = useNavigate();
-const location = useLocation();
+import {
+useNavigate,
+useLocation
+} from "react-router-dom";
 
-const menuItems = [
+import {
+LayoutGrid,
+Paperclip,
+ChevronLeft,
+ChevronRight
+} from "lucide-react";
+
+const Sidebar=()=>{
+
+const [collapsed,setCollapsed]=useState(()=>{
+const savedState=
+localStorage.getItem("sidebar-collapsed");
+return savedState==="true";
+});
+
+useEffect(()=>{
+
+localStorage.setItem(
+"sidebar-collapsed",
+String(collapsed)
+);
+
+},[collapsed]);
+
+const navigate=useNavigate();
+
+const location=useLocation();
+
+const menuItems=[
 {
-label: "BOM Customer Overview",
-path: "/overview",
-icon: (
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-<circle cx="9" cy="7" r="4"/>
-<path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-<path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-</svg>
-)
+label:"BOM Customer Overview",
+path:"/overview",
+icon:<LayoutGrid size={20} />,
 },
 {
-label: "FG Drill-through",
-path: "/drillthrough",
-icon: (
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-<circle cx="11" cy="11" r="8"/>
-<line x1="21" y1="21" x2="16.65" y2="16.65"/>
-<line x1="11" y1="8" x2="11" y2="14"/>
-<line x1="8" y1="11" x2="14" y2="11"/>
-</svg>
-)
+label:"Attachments",
+path:"/attachments",
+icon:<Paperclip size={20} />,
 },
-{
-label: "Attachments",
-path: "/attachments",
-icon: (
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-</svg>
-)
-}
 ];
 
-return (
-<div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-<div className="sidebar-header">
-{collapsed ? (
-<div className="sidebar-brand-collapsed">
-<img
-src="elab_logo.jpg"
-alt="Elevation Labs"
-className="sidebar-logo-small"
-/>
+return(
 
-<button
-className="sidebar-toggle-collapsed"
-onClick={() => setCollapsed(false)}
->
-›
-</button>
-</div>
-) : (
-<div className="sidebar-brand">
-<div className="sidebar-brand-left">
-<img
-src="elab_logo.jpg"
-alt="Elevation Labs"
-className="sidebar-logo"
-/>
-
-<span className="brand-text">Pages</span>
-</div>
-
-<button
-className="sidebar-toggle"
-onClick={() => setCollapsed(true)}
->
-‹
-</button>
-</div>
-)}
-</div>
-
-<div className="sidebar-menu">
-{menuItems.map((item) => (
 <div
-key={item.path}
-className={`menu-item ${
-location.pathname === item.path ? "active" : ""
-}`}
-title={item.label}
-onClick={() => navigate(item.path)}
+className={`
+relative
+transition-all
+duration-300
+border-r
+border-white/20
+backdrop-blur-xl
+bg-[rgba(255, 255, 255, 0.72)]
+${collapsed
+? "w-[72px]"
+: "w-[250px]"
+}
+shrink-0
+h-screen
+`}
 >
-<span className="menu-icon">
-{item.icon}
-</span>
 
-{!collapsed && (
-<span className="menu-text">
+<div
+className="
+flex
+items-center
+justify-between
+px-3
+py-4
+"
+>
+
+<div
+className="
+flex
+items-center
+gap-3
+overflow-hidden
+cursor-pointer
+"
+onClick={()=>{
+if(collapsed){
+setCollapsed(false);
+}
+}}
+>
+
+<img
+src="/elab_logo.jpg"
+alt="logo"
+className="
+w-12
+h-12
+object-contain
+bg-white/60
+p-1
+"
+/>
+
+{!collapsed &&(
+
+<div>
+
+<h2
+className="
+text-[15px]
+font-bold
+text-[#243B6B]
+leading-tight
+"
+>
+Elevation Labs
+</h2>
+
+<p
+className="
+text-[11px]
+font-medium
+text-[#57BFCF]
+"
+>
+Analytics Workspace
+</p>
+
+</div>
+
+)}
+
+</div>
+
+<button
+onClick={()=>
+setCollapsed(!collapsed)
+}
+className="
+h-10
+w-10
+flex
+items-center
+justify-center
+bg-[#D9F7FB]
+text-[#243B6B]
+hover:bg-[#97E0ED]
+transition-all
+"
+>
+
+{collapsed
+? <ChevronRight size={18} />
+: <ChevronLeft size={18} />
+}
+
+</button>
+
+</div>
+
+<div
+className="
+mt-6
+px-2
+space-y-2
+"
+>
+
+{menuItems.map((item)=>(
+
+<button
+key={item.path}
+onClick={()=>
+navigate(item.path)
+}
+className={`
+w-full
+flex
+items-center
+gap-3
+px-4
+py-4
+transition-all
+text-left
+group
+${location.pathname===
+item.path
+? "bg-gradient-to-r from-[#FFB7A0] to-[#97E0ED] text-[#243B6B]"
+: "text-[#243B6B] hover:bg-white/40"
+}
+`}
+>
+
+<div
+className="
+shrink-0
+"
+>
+{item.icon}
+</div>
+
+{!collapsed &&(
+
+<span
+className="
+text-[15px]
+font-medium
+truncate
+"
+>
 {item.label}
 </span>
+
 )}
-</div>
+
+</button>
+
 ))}
+
 </div>
+
 </div>
+
 );
+
 };
 
 export default Sidebar;

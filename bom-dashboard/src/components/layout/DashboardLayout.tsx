@@ -1,22 +1,57 @@
-import react from "react";
+import React from "react";
+
 import Sidebar from "./Sidebar";
-import "./DashboardLayout.css";
 
-interface DashboardLayoutProps {
-    children: React.ReactNode;
-}
+const DashboardLayout = ({
+children,
+}:{
+children:React.ReactNode;
+}) => {
 
-const DashboardLayout = ({children}:DashboardLayoutProps) => {
-    return(
-        <div className="dashboard-layout">
-            <Sidebar />
-            <div className="dashboard-main">
-                <main className="dashboard-content">
-                    {children}
-                </main>
-            </div>
-        </div> 
-    );
+return(
+
+<div
+className="
+h-screen
+w-screen
+overflow-hidden
+flex
+bg-white
+"
+>
+
+<Sidebar />
+
+<div
+className="
+flex-1
+min-w-0
+h-screen
+overflow-hidden
+"
+>
+
+<div
+className="
+h-full
+overflow-auto
+px-3
+sm:px-5
+lg:px-7
+py-3
+"
+>
+
+{children}
+
+</div>
+
+</div>
+
+</div>
+
+);
+
 };
 
 export default DashboardLayout;

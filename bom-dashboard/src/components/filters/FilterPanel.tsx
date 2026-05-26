@@ -119,12 +119,6 @@ const FilterPanel = ({
         />
 
       </div>
-      <button
-        className="clear-btn"
-        onClick={onClearFilters}
-      >
-        Clear all slicers
-      </button>
 
     </div>
 

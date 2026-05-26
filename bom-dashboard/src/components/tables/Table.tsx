@@ -1,275 +1,471 @@
-import React, { useMemo, useState } from "react";
-import "./Table.css";
+import {
+useMemo,
+useState,
+useEffect
+} from "react";
 
-interface Column {
-  header: string;
-  accessor: string;
+import { useNavigate } from "react-router-dom";
+
+import {
+ChevronDown,
+X
+} from "lucide-react";
+
+import {
+Table as UITable,
+TableBody,
+TableCell,
+TableHead,
+TableHeader,
+TableRow,
+} from "@/components/ui/table";
+
+import { Button } from "@/components/ui/button";
+
+interface Column{
+header:string;
+accessor:string;
 }
 
-interface TableProps {
-  columns: Column[];
-  data: Record<string, any>[];
-  onCellClick: (
-    accessor: string,
-    value: string
-  ) => void;
+interface TableProps{
+columns:Column[];
+data:Record<string,any>[];
 }
 
-const Table = ({
-  columns,
-  data,
-  onCellClick,
-}: TableProps) => {
-  const [colFilters, setColFilters] =
-    useState<Record<string, string>>({});
+const Table=({
+columns,
+data,
+}:TableProps)=>{
 
-  const [openFilter, setOpenFilter] =
-    useState<string | null>(null);
+const navigate=useNavigate();
 
-  const filteredData = useMemo(() => {
-    return data.filter((row) =>
-      columns.every((col) => {
-        const filterValue =
-          colFilters[col.accessor];
+const [colFilters,setColFilters]=
+useState<Record<string,string>>(()=>{
 
-        if (!filterValue) return true;
+const savedFilters=
+localStorage.getItem(
+"bom-table-filters"
+);
 
-        return (
-          String(
-            row[col.accessor] ?? ""
-          ) === filterValue
-        );
-      })
-    );
-  }, [data, columns, colFilters]);
+return savedFilters
+? JSON.parse(savedFilters)
+: {};
 
-  const getColumnOptions = (
-    accessor: string
-  ) => {
-    const rowsWithoutCurrentFilter =
-      data.filter((row) =>
-        columns.every((col) => {
-          if (col.accessor === accessor)
-            return true;
+});
 
-          const filterValue =
-            colFilters[col.accessor];
+useEffect(()=>{
 
-          if (!filterValue) return true;
+localStorage.setItem(
+"bom-table-filters",
+JSON.stringify(colFilters)
+);
 
-          return (
-            String(
-              row[col.accessor] ?? ""
-            ) === filterValue
-          );
-        })
-      );
+},[colFilters]);
 
-    return [
-      ...new Set(
-        rowsWithoutCurrentFilter
-          .map((row) =>
-            String(row[accessor] ?? "")
-          )
-          .filter(Boolean)
-      ),
-    ].sort();
-  };
+const [openFilter,setOpenFilter]=
+useState<string|null>(null);
 
-  const setFilter = (
-    accessor: string,
-    value: string
-  ) => {
-    setColFilters((prev) => ({
-      ...prev,
-      [accessor]: value,
-    }));
+const filteredData=useMemo(()=>{
 
-    setOpenFilter(null);
-  };
+return data.filter((row)=>
+columns.every((col)=>{
 
-  const clearFilter = (
-    accessor: string
-  ) => {
-    setColFilters((prev) => {
-      const updated = { ...prev };
+const filterValue=
+colFilters[col.accessor];
 
-      delete updated[accessor];
+if(!filterValue) return true;
 
-      return updated;
-    });
+return(
+String(row[col.accessor] ?? "")===
+filterValue
+);
 
-    setOpenFilter(null);
-  };
+})
+);
 
-  const clearAllFilters = () => {
-    setColFilters({});
-    setOpenFilter(null);
-  };
+},[
+data,
+columns,
+colFilters
+]);
 
-  return (
-    <>
-      <div
-        className="table-container"
-        onClick={() =>
-          setOpenFilter(null)
-        }
-      >
-        <div className="table-wrapper">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                {columns.map((col) => {
-                  const isFiltered =
-                    !!colFilters[
-                      col.accessor
-                    ];
+const getColumnOptions=(
+accessor:string
+)=>{
 
-                  const isOpen =
-                    openFilter ===
-                    col.accessor;
+const rowsWithoutCurrentFilter=
+data.filter((row)=>
+columns.every((col)=>{
 
-                  return (
-                    <th
-                      key={col.accessor}
-                    >
-                      <div className="th-inner">
-                        <span className="th-label">
-                          {col.header}
-                        </span>
+if(col.accessor===accessor)
+return true;
 
-                        <button
-                          className={`filter-icon-btn ${
-                            isFiltered
-                              ? "active"
-                              : ""
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
+const filterValue=
+colFilters[col.accessor];
 
-                            setOpenFilter(
-                              isOpen
-                                ? null
-                                : col.accessor
-                            );
-                          }}
-                        >
-                          ▾
-                        </button>
-                      </div>
+if(!filterValue) return true;
 
-                      {isOpen && (
-                        <div
-                          className="col-filter-dropdown"
-                          onClick={(e) =>
-                            e.stopPropagation()
-                          }
-                        >
-                          <div
-                            className="col-filter-option col-filter-clear"
-                            onClick={() =>
-                              clearFilter(
-                                col.accessor
-                              )
-                            }
-                          >
-                            Clear Filter
-                          </div>
+return(
+String(row[col.accessor] ?? "")===
+filterValue
+);
 
-                          {getColumnOptions(
-                            col.accessor
-                          ).map((opt) => (
-                            <div
-                              key={opt}
-                              className={`col-filter-option ${
-                                colFilters[
-                                  col.accessor
-                                ] === opt
-                                  ? "selected"
-                                  : ""
-                              }`}
-                              onClick={() =>
-                                setFilter(
-                                  col.accessor,
-                                  opt
-                                )
-                              }
-                            >
-                              {opt}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map(
-                (row, rowIndex) => (
-                <tr 
-                key={rowIndex}
-                onClick={() => {
-                  if (
-                    row.unique_id !== undefined
-                  ) {
-                    window.location.href = `/drillthrough?id=${row.unique_id}`;}
-                  }}
-                  style={{
-                    cursor: "pointer",
-                  }}
-                  >
-                    {columns.map((col) => (
-                      <td
-                       key={col.accessor}
-                       className="clickable-cell"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         onCellClick(
-                          col.accessor,
-                          row[
-                            col.accessor]
-                          );
-                        }}>
-                          {
-                          row[
-                            col.accessor
-                          ]
-                          }
-                          </td>
-                        ))}
-                        </tr>
-                        )
-                        )}
-                        {filteredData.length ===
-                        0 && (
-                        <tr>
-                          <td
-                          colSpan={
-                            columns.length
-                          }
-                          className="no-data"
-                          >
-                            No records found
-                            </td>
-                            </tr>
-                          )}
-                         </tbody>
-                    </table>
-                </div>
-          </div>
+})
+);
 
-      <div className="table-actions">
-        <button
-          className="clear-all-btn"
-          onClick={clearAllFilters}
-        >
-          Clear All Slicers
-        </button>
-      </div>
-    </>
-  );
+return[
+...new Set(
+rowsWithoutCurrentFilter
+.map((row)=>
+String(row[accessor] ?? "")
+)
+.filter(Boolean)
+),
+].sort();
+
+};
+
+const setFilter=(
+accessor:string,
+value:string
+)=>{
+
+setColFilters((prev)=>({
+...prev,
+[accessor]:value,
+}));
+
+setOpenFilter(null);
+
+};
+
+const clearFilter=(accessor:string)=>{
+
+setColFilters((prev)=>{
+
+const updated={...prev};
+
+delete updated[accessor];
+
+return updated;
+
+});
+
+setOpenFilter(null);
+
+};
+
+const clearAllFilters=()=>{
+
+setColFilters({});
+setOpenFilter(null);
+
+};
+
+return(
+
+<div
+className="
+relative
+bg-transparent
+overflow-hidden
+"
+>
+<div
+className="
+absolute
+top-0
+right-0
+z-20
+"
+>
+
+<Button
+variant="outline"
+onClick={clearAllFilters}
+className="
+h-[38px]
+border
+border-[rgba(41,64,111,0.16)]
+bg-[rgba(255,255,255,0.22)]
+backdrop-blur-md
+px-4
+text-[12px]
+font-semibold
+text-[#29406F]
+hover:bg-[rgba(255,255,255,0.34)]
+hover:text-[#243B6B]
+shadow-none
+"
+>
+
+<X className="mr-2 h-3 w-3" />
+
+Clear All Slicers
+
+</Button>
+
+</div>
+
+<div
+className="
+overflow-auto
+max-h-[58vh]
+lg:max-h-[64vh]
+"
+>
+
+<UITable>
+
+<TableHeader
+className="
+sticky
+top-0
+z-30
+bg-[#EAF7FC]
+backdrop-blur-md
+"
+>
+
+<TableRow
+className="
+border-none
+hover:bg-transparent
+"
+>
+
+{columns.map((col)=>{
+
+const isOpen=
+openFilter===col.accessor;
+
+const isFiltered=
+!!colFilters[col.accessor];
+
+return(
+
+<TableHead
+key={col.accessor}
+className="
+relative
+min-w-[120px]
+lg:min-w-[145px]
+px-3
+py-3
+text-[12px]
+lg:text-[13px]
+font-semibold
+tracking-normal
+text-[#29406F]
+border-none
+bg-[#EAF7FC]
+"
+>
+
+<div
+className="
+flex
+items-center
+justify-between
+gap-2
+"
+>
+
+<span>
+{col.header}
+</span>
+
+<button
+onClick={(e)=>{
+
+e.stopPropagation();
+
+setOpenFilter(
+isOpen
+? null
+: col.accessor
+);
+
+}}
+className={`
+flex
+h-7
+w-7
+items-center
+justify-center
+transition-all
+${
+isFiltered
+?
+"bg-[#97E0ED] text-[#243B6B] border border-[#243B6B]"
+:
+"bg-[rgba(255,255,255,0.55)] text-[#243B6B] border border-[rgba(36,59,107,0.18)]"
+}
+`}
+>
+
+<ChevronDown className="h-3 w-3" />
+
+</button>
+
+</div>
+
+{isOpen && (
+
+<div
+className="
+absolute
+left-0
+top-12
+z-[999]
+w-[200px]
+border
+border-[#DDECF0]
+bg-white
+shadow-2xl
+"
+>
+
+<button
+onClick={()=>
+clearFilter(col.accessor)
+}
+className="
+w-full
+border-b
+border-[#EEF4F6]
+px-3
+py-2
+text-left
+text-xs
+font-medium
+text-red-500
+hover:bg-red-50
+"
+>
+
+Clear Filter
+
+</button>
+
+<div
+className="
+max-h-[240px]
+overflow-auto
+"
+>
+
+{getColumnOptions(
+col.accessor
+).map((opt)=>(
+
+<button
+key={opt}
+onClick={()=>
+setFilter(
+col.accessor,
+opt
+)
+}
+className={`
+w-full
+px-3
+py-2
+text-left
+text-xs
+transition-all
+${
+colFilters[
+col.accessor
+]===opt
+?
+"bg-[#D9F7FA] text-[#243B6B] font-semibold"
+:
+"text-[#4B5D7A] hover:bg-[#F4FBFC]"
+}
+`}
+>
+
+{opt}
+
+</button>
+
+))}
+
+</div>
+
+</div>
+
+)}
+
+</TableHead>
+
+);
+
+})}
+
+</TableRow>
+
+</TableHeader>
+
+<TableBody>
+
+{filteredData.map((
+row,
+rowIndex
+)=>(
+
+<TableRow
+key={rowIndex}
+onClick={()=>{
+navigate(
+`/drillthrough/${row.unique_id}`
+);
+}}
+className="
+cursor-pointer
+border-b
+border-[rgba(255,255,255,0.16)]
+transition-all
+hover:bg-[rgba(255,255,255,0.12)]
+"
+>
+
+{columns.map((col)=>(
+
+<TableCell
+key={col.accessor}
+className="
+px-2
+lg:px-3
+py-3
+text-[12px]
+lg:text-[14px]
+font-medium
+text-[#42506A]
+"
+>
+
+{row[col.accessor]}
+
+</TableCell>
+
+))}
+
+</TableRow>
+
+))}
+
+</TableBody>
+
+</UITable>
+
+</div>
+
+</div>
+
+);
+
 };
 
 export default Table;
