@@ -92,11 +92,11 @@ setCollapsed(false);
 >
 
 <img
-src="/elab_logo.jpg"
+src="/elabs_logo.jpg"
 alt="logo"
 className="
-w-12
-h-12
+w-16
+h-20
 object-contain
 bg-white/60
 p-1
