@@ -2,26 +2,24 @@ import { useState, useMemo } from "react";
 import type { CSSProperties } from "react";
 import Sidebar from "../components/layout/Sidebar";
 
-// ─── Color Palette ────────────────────────────────────────────────────────────
 const colors = {
-  coral: "#E5A488",     // Top apex — warm salmon
-  peach: "#DFAD94",     // Left triangle mid
-  sand: "#C9BEA8",      // Center-left blend
-  seafoam: "#9CCCC0",   // Gradient center
-  mint: "#79C8C2",      // Mid-right teal-green
-  teal: "#2EB7BF",      // Right triangle bright teal
-  ocean: "#00A5BD",     // Right edge deep teal
-  deepOcean: "#0B96B3", // Bottom-right darkest
+  coral: "#E5A488",
+  peach: "#DFAD94",
+  sand: "#C9BEA8",
+  seafoam: "#9CCCC0",
+  mint: "#79C8C2",
+  teal: "#2EB7BF",
+  ocean: "#00A5BD",
+  deepOcean: "#0B96B3",
   
-  // Light theme background & contrast replacements!
-  navy: "#F4F6F9",      // Premium soft-gray light background
-  navyMid: "#FFFFFF",   // Card and table container white background
-  navyLight: "#E2E8F0", // Slate border color for separators
-  white: "#0F172A",     // Primary dark-text color (used to be white)
-  offWhite: "#FFFFFF",  // Extra bright surface color
-  gray: "#64748B",      // Medium slate text color
-  grayLight: "#334155", // Darker slate header text color
-  darkText: "#0F172A",  // Main text dark
+  navy: "#F4F6F9",
+  navyMid: "#FFFFFF",
+  navyLight: "#E2E8F0",
+  white: "#0F172A",
+  offWhite: "#FFFFFF",
+  gray: "#64748B",
+  grayLight: "#334155",
+  darkText: "#0F172A",
 } as const;
 
 const gradientText: CSSProperties = {
@@ -31,7 +29,6 @@ const gradientText: CSSProperties = {
   backgroundClip: "text",
 };
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 interface OrderRow {
   so: string;
   job: string;
@@ -65,7 +62,6 @@ interface OrderRow {
 
 type SortKey = keyof OrderRow;
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
 const mockData: OrderRow[] = [
   { so: "S000007034", job: "J000012806", jobStatus: "C", item: "900-645-0-0045", lineName: "Boka 4oz Watermelon Mint Toothpaste", custPO: "POKRK0817", custItemNum: "BOK-FGS-P002-02-AE1US", price: 2.30, qtyOrdered: 0, qtyShipped: 0, dueDate: "07/22/2025", custReqDate: "", amNotes: "On production schedule wk of 6/23. Bulk complete - on track to fill wk of 6/16", planNotes: "AMAZON JOB", rmStatus: "0 Items", compStatus: "0", componentStatus: "4 Items", elabsMatStatus: "Pending Comps", bulkJob: "", bulkLot: "", projFillDate: "03/30/2026", finishGoodLot: "", orderDate: "08/21/2025", dateShipped: "", internalProgress: "Not Released", progressStatus: "Not Released", site: "Colorado" },
   { so: "S000007035", job: "J000012807", jobStatus: "C", item: "900-645-0-0036", lineName: "Boka 1.3oz Ela Mint Toothpaste 2PK", custPO: "POKRK0819", custItemNum: "BOK-FGS-P008-01-AB1US", price: 1.05, qtyOrdered: 0, qtyShipped: 0, dueDate: "07/22/2025", custReqDate: "", amNotes: "Scheduled late wk of 6/23, may roll to wk of 6/30. Amazon labels received 4/30", planNotes: "AMAZON JOB", rmStatus: "0 Items", compStatus: "0", componentStatus: "18 Items", elabsMatStatus: "Materials Clear", bulkJob: "", bulkLot: "P2511-000000033", projFillDate: "", finishGoodLot: "P2511-000000033", orderDate: "09/02/2025", dateShipped: "", internalProgress: "Bulk Complete Approved for Filling", progressStatus: "Bulk Complete", site: "Colorado" },
@@ -89,7 +85,6 @@ const mockData: OrderRow[] = [
   { so: "S000007288", job: "J000013575", jobStatus: "C", item: "900-645-0-0057", lineName: "Boka Enzyme Toothpaste 4oz", custPO: "POKRK0915", custItemNum: "BOK-FGS-P022-01-AB1US", price: 2.80, qtyOrdered: 14, qtyShipped: 0, dueDate: "11/03/2025", custReqDate: "10/27/2025", amNotes: "Customer needs before holiday season", planNotes: "Priority holiday rush", rmStatus: "1 Items", compStatus: "1", componentStatus: "17 Items", elabsMatStatus: "Pending Comps", bulkJob: "", bulkLot: "", projFillDate: "10/27/2025", finishGoodLot: "", orderDate: "10/20/2025", dateShipped: "", internalProgress: "Not Released", progressStatus: "Not Released", site: "Colorado" },
 ];
 
-// ─── Status Styling ───────────────────────────────────────────────────────────
 interface StatusColorDef {
   bg: string;
   text: string;
@@ -121,7 +116,6 @@ const getStatusStyle = (status: string): CSSProperties => {
   };
 };
 
-// ─── Column definitions ───────────────────────────────────────────────────────
 const table1Cols: { key: SortKey; label: string }[] = [
   { key: "so",               label: "Sales Order #" },
   { key: "job",              label: "Job" },
@@ -180,7 +174,6 @@ const statuses = [
   "Materials Clear",
 ];
 
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function ElevationLabsOOR() {
   const [data, setData]               = useState<OrderRow[]>(mockData);
   const [search, setSearch]           = useState("");
@@ -191,7 +184,6 @@ export default function ElevationLabsOOR() {
   const [selectedRow, setSelectedRow] = useState<OrderRow | null>(null);
   const [showEmailPopup, setShowEmailPopup] = useState<OrderRow | null>(null);
 
-  // ── Filtered + sorted data ──
   const filtered = useMemo<OrderRow[]>(() => {
     let d: OrderRow[] = data;
 
@@ -229,7 +221,6 @@ export default function ElevationLabsOOR() {
     else { setSortCol(col); setSortDir("asc"); }
   };
 
-  // ── Summary stats (derived from full dataset) ──
   const stats = useMemo(() => ({
     total:       data.length,
     notReleased: data.filter((r) => r.progressStatus === "Not Released").length,
@@ -238,7 +229,6 @@ export default function ElevationLabsOOR() {
     pending:     data.filter((r) => r.elabsMatStatus === "Pending Comps").length,
   }), [data]);
 
-  // ── Style helpers ──
   const thStyle = (col: SortKey): CSSProperties => ({
     padding: "10px 12px",
     textAlign: "left",
@@ -275,7 +265,6 @@ export default function ElevationLabsOOR() {
     </span>
   );
 
-  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
         <Sidebar />
@@ -297,7 +286,7 @@ export default function ElevationLabsOOR() {
         input:focus { outline: none; }
       `}</style>
 
-      {/* ── Header ── */}
+      {/*  Header  */}
       <header style={{
         background: `linear-gradient(90deg, ${colors.navyMid} 0%, ${colors.navy} 100%)`,
         borderBottom: "1px solid rgba(0,0,0,0.06)",
@@ -364,7 +353,7 @@ export default function ElevationLabsOOR() {
 
       <div style={{ padding: "24px 32px" }}>
 
-        {/* ── Stats Row ── */}
+        {/*  Stats Row  */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 24 }}>
           {[
             { 
@@ -403,7 +392,7 @@ export default function ElevationLabsOOR() {
           ))}
         </div>
 
-        {/* ── Tabs ── */}
+        {/*  Tabs  */}
         <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
           {([{ id: "table1", label: "Sales Order View" }, { id: "table2", label: "Production Status" }] as const).map((tab) => (
             <button
@@ -427,7 +416,7 @@ export default function ElevationLabsOOR() {
           ))}
         </div>
 
-        {/* ── Controls Bar ── */}
+        {/*  Controls Bar  */}
         <div style={{ background: colors.navyMid, border: "1px solid rgba(0,0,0,0.05)", borderRadius: "0 12px 0 0", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <input
             value={search}
@@ -460,7 +449,7 @@ export default function ElevationLabsOOR() {
           </div>
         </div>
 
-        {/* ── Table Container ── */}
+        {/*  Table Container  */}
         <div style={{ background: colors.navyMid, border: "1px solid rgba(0,0,0,0.05)", borderTop: "none", borderRadius: "0 0 12px 12px", overflowX: "auto", overflowY: "auto", maxHeight: "60vh", width: "100%", minWidth: 0 }}>
 
           {/* ─ Table 1: Sales Order View ─ */}
@@ -601,7 +590,7 @@ export default function ElevationLabsOOR() {
           )}
         </div>
 
-        {/* ── Footer ── */}
+        {/*  Footer  */}
         <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end", alignItems: "center", padding: "0 4px" }}>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "6px 14px", fontSize: 12, color: colors.grayLight, cursor: "pointer" }}>
@@ -614,7 +603,7 @@ export default function ElevationLabsOOR() {
         </div>
       </div>
 
-      {/* ── Modal ── */}
+      {/*  Modal  */}
       {selectedRow && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
@@ -712,7 +701,7 @@ export default function ElevationLabsOOR() {
         </div>
       )}
 
-      {/* ── Email Popup ── */}
+      {/*  Email Popup  */}
       {showEmailPopup && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
