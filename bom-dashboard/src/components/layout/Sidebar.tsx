@@ -92,7 +92,7 @@ setCollapsed(false);
 >
 
 <img
-src="/elab_logo.jpg"
+src="/elabs_logo.jpg"
 alt="logo"
 className="
 w-12
