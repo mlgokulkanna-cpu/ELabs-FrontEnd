@@ -6,7 +6,34 @@ Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run and start the application
 
+### Frontend
+1. Install dependencies if needed:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+3. Open the local app in your browser (Vite typically runs on `http://localhost:5173`).
+
+### Backend
+1. From the `backend` folder, install dependencies if needed:
+   ```bash
+   npm install
+   ```
+2. Start the Express API server:
+   ```bash
+   node server.js
+   ```
+3. The API will run on `http://localhost:5000`.
+
+### Start both services
+- Run the frontend from the project root.
+- Run the backend from the `backend` folder in a separate terminal.
+- The dashboard expects the backend API on port `5000`.
 ## React Compiler
 
 The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.

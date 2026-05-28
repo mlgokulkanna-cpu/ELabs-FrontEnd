@@ -34,3 +34,13 @@ export const getAgentData = async (
   return response.data;
 
 };
+
+export const updateOrder = async (so: string, payload: Record<string, any>) => {
+  const response = await API.post('/order-update', { so, ...payload });
+  return response.data;
+};
+
+export const getOrders = async () => {
+  const response = await API.get("/orders");
+  return response.data;
+};

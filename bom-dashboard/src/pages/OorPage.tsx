@@ -1,5 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { getOrders } from "../api/dashboardApi";
 import type { CSSProperties } from "react";
+import Sidebar from "../components/layout/Sidebar";
+import { updateOrder } from "../api/dashboardApi";
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const colors = {
@@ -181,7 +184,19 @@ const statuses = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function ElevationLabsOOR() {
-  const [data, setData]               = useState<OrderRow[]>(mockData);
+  const [data, setData] = useState<OrderRow[]>([]);
+    // Fetch live orders on mount
+    useEffect(() => {
+      const fetchOrders = async () => {
+        try {
+          const orders = await getOrders();
+          setData(orders);
+        } catch (err) {
+          console.error('Failed to fetch orders', err);
+        }
+      };
+      fetchOrders();
+    }, []);
   const [search, setSearch]           = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [sortCol, setSortCol]         = useState<SortKey>("so");
@@ -189,6 +204,11 @@ export default function ElevationLabsOOR() {
   const [activeTab, setActiveTab]     = useState<"table1" | "table2">("table1");
   const [selectedRow, setSelectedRow] = useState<OrderRow | null>(null);
   const [showEmailPopup, setShowEmailPopup] = useState<OrderRow | null>(null);
+  const [modalAmNotes, setModalAmNotes] = useState("");
+  const [modalPlanNotes, setModalPlanNotes] = useState("");
+  const [modalRmStatus, setModalRmStatus] = useState("");
+  const [modalCompStatus, setModalCompStatus] = useState("");
+  const [modalSaving, setModalSaving] = useState(false);
 
   // ── Filtered + sorted data ──
   const filtered = useMemo<OrderRow[]>(() => {
@@ -221,7 +241,16 @@ export default function ElevationLabsOOR() {
         ? String(av).localeCompare(String(bv))
         : String(bv).localeCompare(String(av));
     });
-  }, [search, filterStatus, sortCol, sortDir]);
+  }, [data, search, filterStatus, sortCol, sortDir]);
+
+  useEffect(() => {
+    if (selectedRow) {
+      setModalAmNotes(selectedRow.amNotes || "");
+      setModalPlanNotes(selectedRow.planNotes || "");
+      setModalRmStatus(selectedRow.rmStatus || "");
+      setModalCompStatus(selectedRow.compStatus || "");
+    }
+  }, [selectedRow]);
 
   const handleSort = (col: SortKey) => {
     if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -276,10 +305,11 @@ export default function ElevationLabsOOR() {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", background: colors.navy, minHeight: "100vh", color: colors.white }}>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+        <Sidebar />
+        <div style={{ flex: 1, minWidth: 0, fontFamily: "Geist Variable, sans-serif", background: colors.navy, minHeight: "100vh", color: colors.white }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; font-family: "Geist Variable",sans-serif; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: ${colors.navy}; }
         ::-webkit-scrollbar-thumb { background: ${colors.navyLight}; border-radius: 3px; }
@@ -363,7 +393,7 @@ export default function ElevationLabsOOR() {
       <div style={{ padding: "24px 32px" }}>
 
         {/* ── Stats Row ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 14, marginBottom: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 24 }}>
           {[
             { 
               label: "Total Orders", val: stats.total, 
@@ -459,7 +489,7 @@ export default function ElevationLabsOOR() {
         </div>
 
         {/* ── Table Container ── */}
-        <div style={{ background: colors.navyMid, border: "1px solid rgba(0,0,0,0.05)", borderTop: "none", borderRadius: "0 0 12px 12px", overflow: "auto", maxHeight: "60vh" }}>
+        <div style={{ background: colors.navyMid, border: "1px solid rgba(0,0,0,0.05)", borderTop: "none", borderRadius: "0 0 12px 12px", overflowX: "auto", overflowY: "auto", maxHeight: "60vh", width: "100%", minWidth: 0 }}>
 
           {/* ─ Table 1: Sales Order View ─ */}
           {activeTab === "table1" && (
@@ -503,6 +533,14 @@ export default function ElevationLabsOOR() {
                             setData(newData);
                           }
                         }}
+                        onBlur={async (e) => {
+                          try {
+                            await updateOrder(row.so, { amNotes: e.target.value });
+                          } catch (err) {
+                            console.error(err);
+                            alert('Failed to save AM Notes');
+                          }
+                        }}
                         style={{ width: "100%", height: "48px", resize: "vertical", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 4, padding: "4px", fontSize: "11px", fontFamily: "inherit", background: "transparent", color: "inherit" }}
                       />
                     </td>
@@ -515,6 +553,14 @@ export default function ElevationLabsOOR() {
                           if (idx !== -1) {
                             newData[idx] = { ...newData[idx], planNotes: e.target.value };
                             setData(newData);
+                          }
+                        }}
+                        onBlur={async (e) => {
+                          try {
+                            await updateOrder(row.so, { planNotes: e.target.value });
+                          } catch (err) {
+                            console.error(err);
+                            alert('Failed to save Notes for Planning');
                           }
                         }}
                         style={{ width: "100%", height: "48px", resize: "vertical", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 4, padding: "4px", fontSize: "11px", fontFamily: "inherit", background: "transparent", color: "inherit" }}
@@ -584,6 +630,14 @@ export default function ElevationLabsOOR() {
                     <td style={tdStyle}><span style={getStatusStyle(row.internalProgress)}>{row.internalProgress}</span></td>
                     <td style={tdStyle}><span style={getStatusStyle(row.progressStatus)}>{row.progressStatus}</span></td>
                     <td style={{ ...tdStyle, color: colors.ocean }}>{row.site}</td>
+                    <td style={{ ...tdStyle, textAlign: "center" }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowEmailPopup(row); }}
+                        style={{ background: "#4bc2c9", color: "#fff", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }}
+                      >
+                        Email
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -592,10 +646,7 @@ export default function ElevationLabsOOR() {
         </div>
 
         {/* ── Footer ── */}
-        <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px" }}>
-          <div style={{ fontSize: 11, color: colors.gray }}>
-            © 2025 – OnSight &nbsp;·&nbsp; Elevation Labs OOR Dashboard
-          </div>
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end", alignItems: "center", padding: "0 4px" }}>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, padding: "6px 14px", fontSize: 12, color: colors.grayLight, cursor: "pointer" }}>
               Email
@@ -640,6 +691,14 @@ export default function ElevationLabsOOR() {
                     {statuses.filter(s => s !== "All").map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Raw Mat Status</div>
+                  <input value={modalRmStatus} onChange={(e) => setModalRmStatus(e.target.value)} style={{ width: '100%', padding: '6px', borderRadius: 4, border: '1px solid #d1d5db' }} />
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Comp Status</div>
+                  <input value={modalCompStatus} onChange={(e) => setModalCompStatus(e.target.value)} style={{ width: '100%', padding: '6px', borderRadius: 4, border: '1px solid #d1d5db' }} />
+                </div>
                 
                 <div style={{ fontWeight: "bold", marginTop: 4 }}>Order Date: <span style={{ fontWeight: "normal" }}>{selectedRow.orderDate}</span></div>
                 <div style={{ fontWeight: "bold" }}>Cust. Request Date: <span style={{ fontWeight: "normal" }}>{selectedRow.custReqDate || "—"}</span></div>
@@ -661,14 +720,14 @@ export default function ElevationLabsOOR() {
 
               {/* Middle Column (AM Notes) */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: 4 }}>AM Notes</div>
-                <textarea defaultValue={selectedRow.amNotes} style={{ flex: 1, minHeight: "280px", resize: "none", padding: "8px", border: "1px solid #ccc" }} />
+                  <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: 4 }}>AM Notes</div>
+                  <textarea value={modalAmNotes} onChange={(e) => setModalAmNotes(e.target.value)} style={{ flex: 1, minHeight: "280px", resize: "none", padding: "8px", border: "1px solid #ccc" }} />
               </div>
 
               {/* Right Column (Notes for Planning) */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                 <div style={{ textAlign: "center", fontWeight: "bold", marginBottom: 4 }}>Notes for Planning</div>
-                <textarea defaultValue={selectedRow.planNotes} style={{ flex: 1, minHeight: "280px", resize: "none", padding: "8px", border: "1px solid #ccc" }} />
+                <textarea value={modalPlanNotes} onChange={(e) => setModalPlanNotes(e.target.value)} style={{ flex: 1, minHeight: "280px", resize: "none", padding: "8px", border: "1px solid #ccc" }} />
               </div>
             </div>
 
@@ -686,21 +745,46 @@ export default function ElevationLabsOOR() {
               />
 
               <div style={{ textAlign: "center", fontWeight: "bold", marginTop: "12px", marginBottom: "4px" }}>Raw Status</div>
-              <textarea 
-                defaultValue={""} 
-                style={{ width: "100%", height: "40px", resize: "none", border: "2px solid #000", padding: "8px" }} 
-              />
+                <textarea 
+                  defaultValue={""} 
+                  style={{ width: "100%", height: "40px", resize: "none", border: "2px solid #000", padding: "8px" }} 
+                />
             </div>
 
             {/* Footer Actions */}
-            <div style={{ padding: "16px", borderTop: "1px solid #eee", display: "flex", justifyContent: "flex-end", background: "#f8f9fa" }}>
-              <button 
-                onClick={() => setSelectedRow(null)}
-                style={{ background: "#d9534f", color: "#fff", border: "none", padding: "8px 24px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}
-              >
-                Close
-              </button>
-            </div>
+              <div style={{ padding: "16px", borderTop: "1px solid #eee", display: "flex", justifyContent: "flex-end", background: "#f8f9fa", gap: 12 }}>
+                <div style={{ alignSelf: 'center', color: modalSaving ? '#0b6' : '#666', fontSize: 13 }}>{modalSaving ? 'Saving...' : ''}</div>
+                <button 
+                  onClick={async () => {
+                    if (!selectedRow) return;
+                    setModalSaving(true);
+                    try {
+                      const payload: Record<string, any> = {
+                        amNotes: modalAmNotes,
+                        planNotes: modalPlanNotes,
+                        rmStatus: modalRmStatus,
+                        compStatus: modalCompStatus,
+                      };
+                      await updateOrder(selectedRow.so, payload);
+                      setData((d) => d.map(r => r.so === selectedRow.so ? { ...r, ...payload } : r));
+                    } catch (e) {
+                      console.error(e);
+                      alert('Failed to save changes');
+                    } finally {
+                      setModalSaving(false);
+                    }
+                  }}
+                  style={{ background: "#2b8a3e", color: "#fff", border: "none", padding: "8px 20px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}
+                >
+                  Save
+                </button>
+                <button 
+                  onClick={() => setSelectedRow(null)}
+                  style={{ background: "#d9534f", color: "#fff", border: "none", padding: "8px 24px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}
+                >
+                  Close
+                </button>
+              </div>
           </div>
         </div>
       )}
@@ -711,7 +795,7 @@ export default function ElevationLabsOOR() {
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
           background: "rgba(0,0,0,0.5)", zIndex: 1000,
           display: "flex", justifyContent: "center", alignItems: "center",
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+          fontFamily: "Geist Variable, sans-serif"
         }}>
           <div style={{
             background: "#fff", width: "550px", maxWidth: "95vw",
@@ -722,66 +806,66 @@ export default function ElevationLabsOOR() {
             <div style={{ textAlign: "center", fontSize: "22px", fontWeight: "600", padding: "16px 0", color: "#444" }}>
               Customer Defaults
             </div>
-            <div style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: "12px", color: "#333" }}>
-              
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "6px 12px", width: "130px", borderRight: "none", fontSize: "13px", color: "#555" }}>Sites:</div>
-                <select style={{ flex: 1, border: "1px solid #ced4da", padding: "6px", fontSize: "13px", maxWidth: "200px" }}>
+            <div style={{ padding: "0 24px 24px", display: "grid", gap: "14px", color: "#333" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#334155", borderRadius: "6px" }}>Sites:</div>
+                <select style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", background: "#fff", color: "#111" }}>
                   <option></option>
                 </select>
               </div>
 
-              <div>
-                <div style={{ display: "flex", alignItems: "stretch" }}>
-                  <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "8px 12px", width: "130px", borderRight: "none", fontSize: "13px", color: "#c92a2a" }}>Email To:</div>
-                  <textarea style={{ flex: 1, border: "1px solid #ced4da", minHeight: "40px", padding: "6px", fontSize: "13px", resize: "vertical" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px", alignItems: "start" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#c92a2a", borderRadius: "6px" }}>Email To:</div>
+                <div>
+                  <textarea style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", minHeight: "80px", padding: "10px 12px", fontSize: "13px", background: "#fff", color: "#111", resize: "vertical" }} />
+                  <div style={{ fontSize: "11px", fontStyle: "italic", color: "#666", marginTop: "6px" }}>Enter all email addresses separated by commas.</div>
                 </div>
-                <div style={{ fontSize: "11px", fontStyle: "italic", color: "#666", marginTop: "4px" }}>Enter all email addresses separated by commas.</div>
               </div>
 
-              <div>
-                <div style={{ display: "flex", alignItems: "stretch" }}>
-                  <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "8px 12px", width: "130px", borderRight: "none", fontSize: "13px", color: "#1864ab" }}>CC Email To:</div>
-                  <textarea style={{ flex: 1, border: "1px solid #ced4da", minHeight: "40px", padding: "6px", fontSize: "13px", resize: "vertical" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px", alignItems: "start" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#1864ab", borderRadius: "6px" }}>CC Email To:</div>
+                <div>
+                  <textarea style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", minHeight: "80px", padding: "10px 12px", fontSize: "13px", background: "#fff", color: "#111", resize: "vertical" }} />
+                  <div style={{ fontSize: "11px", fontStyle: "italic", color: "#666", marginTop: "6px" }}>Enter all email addresses separated by commas.</div>
                 </div>
-                <div style={{ fontSize: "11px", fontStyle: "italic", color: "#666", marginTop: "4px" }}>Enter all email addresses separated by commas.</div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "stretch" }}>
-                <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "8px 12px", width: "130px", borderRight: "none", fontSize: "13px", color: "#1864ab" }}>Email Subject:</div>
-                <input style={{ flex: 1, border: "1px solid #ced4da", padding: "6px", fontSize: "13px" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#1864ab", borderRadius: "6px" }}>Email Subject:</div>
+                <input style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", background: "#fff", color: "#111" }} />
               </div>
 
-              <div style={{ display: "flex", alignItems: "stretch" }}>
-                <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "8px 12px", width: "130px", borderRight: "none", fontSize: "13px", color: "#c92a2a" }}>Email Body:</div>
-                <textarea style={{ flex: 1, border: "1px solid #000", minHeight: "220px", padding: "6px", fontSize: "13px", resize: "vertical" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px", alignItems: "start" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#c92a2a", borderRadius: "6px" }}>Email Body:</div>
+                <textarea style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", minHeight: "200px", padding: "10px 12px", fontSize: "13px", background: "#fff", color: "#111", resize: "vertical" }} />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "6px 12px", width: "130px", borderRight: "none", fontSize: "13px", color: "#1864ab" }}>Excel Sort Column:</div>
-                <select style={{ flex: 1, border: "1px solid #ced4da", padding: "6px", fontSize: "13px", maxWidth: "250px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#1864ab", borderRadius: "6px" }}>Excel Sort Column:</div>
+                <select style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", background: "#fff", color: "#111" }}>
                   <option></option>
                 </select>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
-                <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "4px 8px", fontSize: "13px", color: "#1864ab" }}>House Account:</div>
-                <input type="checkbox" />
+              <div style={{ display: "grid", gridTemplateColumns: "130px auto", gap: "12px", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#1864ab", borderRadius: "6px" }}>House Account:</div>
+                <input type="checkbox" style={{ width: "18px", height: "18px" }} />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
-                <div style={{ background: "#f1f3f5", border: "1px solid #ced4da", padding: "4px 8px", fontSize: "13px", color: "#1864ab" }}>Send as Zip File:</div>
-                <input type="checkbox" />
+              <div style={{ display: "grid", gridTemplateColumns: "130px auto", gap: "12px", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #d1d5db", padding: "10px 12px", fontSize: "13px", color: "#1864ab", borderRadius: "6px" }}>Send as Zip File:</div>
+                <input type="checkbox" style={{ width: "18px", height: "18px" }} />
               </div>
-              
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px", paddingTop: "16px" }}>
-                <button style={{ background: "#4bc2c9", color: "#fff", border: "none", borderRadius: "4px", padding: "10px 16px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>Save Customer Defaults</button>
-                <button onClick={() => setShowEmailPopup(null)} style={{ background: "#de4a4a", color: "#fff", border: "none", borderRadius: "4px", padding: "8px 24px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>Back</button>
+
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginTop: "24px", paddingTop: "16px" }}>
+                <button style={{ flex: 1, background: "#4bc2c9", color: "#fff", border: "none", borderRadius: "6px", padding: "12px 16px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>Save Customer Defaults</button>
+                <button onClick={() => setShowEmailPopup(null)} style={{ flex: 1, background: "#de4a4a", color: "#fff", border: "none", borderRadius: "6px", padding: "12px 16px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>Back</button>
               </div>
             </div>
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

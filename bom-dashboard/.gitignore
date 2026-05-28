@@ -17,8 +17,8 @@ lerna-debug.log*
 *.webp
 *.zip
 
-node_modules
-dist
+node_modules/
+dist/
 dist-ssr
 *.local
 

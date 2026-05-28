@@ -4,8 +4,6 @@ import { DefaultAzureCredential } from "@azure/identity";
 
 dotenv.config();
 
-const credential = new DefaultAzureCredential();
-
 let pool;
 
 const getConnection = async () => {
@@ -15,6 +13,13 @@ const getConnection = async () => {
     if (pool) {
       return pool;
     }
+
+    if (!process.env.DB_SERVER || !process.env.DB_DATABASE) {
+      console.log("DB connection skipped: DB_SERVER or DB_DATABASE not configured");
+      return null;
+    }
+
+    const credential = new DefaultAzureCredential();
 
     const tokenResponse =
       await credential.getToken(
@@ -50,7 +55,8 @@ const getConnection = async () => {
 
   } catch (err) {
 
-    console.log(err);
+    console.log("DB connection failed:", err?.message ?? err);
+    return null;
 
   }
 

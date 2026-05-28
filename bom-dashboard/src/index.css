@@ -49,33 +49,19 @@ margin:0;
 min-height:100vh;
 overflow:hidden;
 background: #ffffff;
-/*background:
-linear-gradient(
-135deg,
-rgba(255,183,160,0.34) 0%,
-rgba(187,233,214,0.32) 50%,
-rgba(151,224,237,0.34) 100%
-);*/
 font-family:"Geist Variable",sans-serif;
 color:hsl(var(--foreground));
 -webkit-font-smoothing:antialiased;
 -moz-osx-font-smoothing:grayscale;
 }
 
+*{
+font-family: inherit;
+}
+
 #root{
 height:100vh;
 overflow:hidden;
-}
-
-*::-webkit-scrollbar{
-width:0;
-height:0;
-display:none;
-}
-
-*{
--ms-overflow-style:none;
-scrollbar-width:none;
 }
 
 }
